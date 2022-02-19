@@ -1,0 +1,9 @@
+[submodule "hooking"]
+	path = source/hooking
+	url = ../../ThirteenAG/Hooking.Patterns.git
+[submodule "inireader"]
+	path = source/inireader
+	url = ../../ThirteenAG/IniReader.git
+[submodule "injector"]
+	path = source/injector
+	url = ../../thelink2012/injector.git

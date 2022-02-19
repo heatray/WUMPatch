@@ -1,0 +1,72 @@
+#include "VersionInfo.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+#include <winresrc.h>
+#undef APSTUDIO_READONLY_SYMBOLS
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUD)
+LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
+
+#ifdef APSTUDIO_INVOKED
+
+1 TEXTINCLUDE 
+BEGIN
+    "VersionInfo.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include <winresrc.h>\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION rsc_MajorVersion,rsc_MinorVersion,rsc_RevisionID,rsc_BuildID
+ PRODUCTVERSION rsc_MajorVersion,rsc_MinorVersion,rsc_RevisionID,rsc_BuildID
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040004b0"
+        BEGIN
+            VALUE "CompanyName", rsc_CompanyName
+            VALUE "FileDescription", rsc_FileDescription
+            VALUE "FileVersion", rsc_StringVersion
+            VALUE "InternalName", rsc_InternalName
+            VALUE "LegalCopyright", rsc_LegalCopyright
+            VALUE "OriginalFilename", rsc_OriginalFilename
+            VALUE "ProductName", rsc_ProductName
+            VALUE "ProductVersion", rsc_StringVersion
+            VALUE "UpdateUrl", rsc_UpdateUrl
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x400, 1200
+    END
+END
+
+#endif    // Neutral (Default) resources
+
+#ifndef APSTUDIO_INVOKED
+#endif    // not APSTUDIO_INVOKED
+

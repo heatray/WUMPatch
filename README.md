@@ -1,5 +1,7 @@
 # Worms Ultimate Mayhem Anniversary Patch
 
+![GitHub latest tag)](https://img.shields.io/github/v/tag/heatray/WUMPatch?label=latest) ![GitHub all releases](https://img.shields.io/github/downloads/heatray/WUMPatch/total)
+
 Unofficial patch for [Worms Ultimate Mayhem](https://store.steampowered.com/app/70600).
 
 Supported exe versions: **Steam Ver#1077**

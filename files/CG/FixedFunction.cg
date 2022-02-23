@@ -1,0 +1,920 @@
+// Xbox360 skinning
+float4x4 BlendMat[35]	: register(c8);
+
+//***************************************************************************
+void FFVertexMain(	float3 inPos : POSITION,
+					out float4 outPos : POSITION,
+					uniform float4x4 model,
+					uniform float4x4 view,
+					uniform float4x4 projection )
+{
+	outPos = mul( mul( mul( float4(inPos,1), model ), view ), projection );
+}
+//***************************************************************************
+void FFVertexMainTex(	float3 inPos : POSITION,
+						float2 inTexCoord0 : TEXCOORD0,
+						out float4 outPos : POSITION,
+						out float2 outTexCoord0 : TEXCOORD0,
+						uniform float4x4 model,
+						uniform float4x4 view,
+						uniform float4x4 projection,
+						uniform float4x4 texTransform )
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+	outTexCoord0 = mul( float4(inTexCoord0,0,1), texTransform ).xy;
+}
+//***************************************************************************
+// FFVertexMainLitSpot Not Implemented
+// FFVertexMainTexLitSpot Not Implemented
+//***************************************************************************
+void FFVertexMainLitPoint(	float3 inPos : POSITION,
+							float3 inNormal : NORMAL,
+							out float4 outPos : POSITION,
+							// Use the other texture coords for lighting information
+							out float3 outEyeVector : TEXCOORD1,
+							out float3 outNormal : TEXCOORD2,
+							out float3 outLightVector : TEXCOORD3,
+							uniform float4x4 model,
+							uniform float4x4 view,
+							uniform float4x4 projection,
+							uniform float3 lightPosition // Model-space light position
+						)
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+	// Calculate the vector from the view position to the vertex
+	float4 eyePos = mul( mul( float4(inPos,1), model ), view );
+	outNormal = inNormal;
+	outLightVector = lightPosition - inPos;
+	outEyeVector = -eyePos.xyz;
+}
+//***************************************************************************
+void FFVertexMainTexLitPoint(	float3 inPos : POSITION,
+								float3 inNormal : NORMAL,
+								float2 inTexCoord0 : TEXCOORD0,
+								out float4 outPos : POSITION,
+								out float2 outTexCoord0 : TEXCOORD0,
+								// Use the other texture coords for lighting information
+								out float3 outEyeVector : TEXCOORD1,
+								out float3 outNormal : TEXCOORD2,
+								out float3 outLightVector : TEXCOORD3,
+								uniform float4x4 model,
+								uniform float4x4 view,
+								uniform float4x4 projection,
+								uniform float3 lightPosition,			// Model-space light position
+								uniform float4x4 texTransform )
+{
+	FFVertexMainLitPoint( inPos, inNormal, outPos, outEyeVector, outNormal, outLightVector, model, view, projection, lightPosition );
+	outTexCoord0 = mul( float4(inTexCoord0,0,1), texTransform ).xy;
+}
+//***************************************************************************
+void FFVertexMainLitDirectional(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+									float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+									out float4 outPos : POSITION,			// Projected vertex coord
+									// Use the other texture coords for lighting information.
+									out float3 outEyeVector : TEXCOORD1,	// Eye-space direction from vertex to eye
+									out float3 outNormal : TEXCOORD2,		// Eye-space per-vertex normals
+									out float3 outLightVector : TEXCOORD3,	// Eye-space direction from vertex to light
+									uniform float4x4 model,
+									uniform float4x4 view,
+									uniform float4x4 projection,
+									uniform float3 lightDirection			// Eye-space light direction
+									)
+{
+	// Calculate the vector from the view position to the vertex
+	float4x4 modelView, modelViewProjection;
+	modelView = mul( model, view );
+	modelViewProjection = mul ( modelView, projection );
+	float4 eyePos = mul( float4(inPos,1), modelView );
+	outPos = mul( float4(inPos,1), modelViewProjection );
+	outNormal = mul( float4(inNormal,0), modelView ).xyz;
+	outLightVector = -lightDirection;
+	outEyeVector = -eyePos.xyz;
+}
+//***************************************************************************
+void FFVertexMainTexLitDirectional(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+									float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+									float2 inTexCoord0 : TEXCOORD0,
+									out float4 outPos : POSITION,			// Projected vertex coord
+									out float2 outTexCoord0 : TEXCOORD0,
+									// Use the other texture coords for lighting information.
+									out float3 outEyeVector : TEXCOORD1,	// Eye-space direction from vertex to eye
+									out float3 outNormal : TEXCOORD2,		// Eye-space per-vertex normals
+									out float3 outLightVector : TEXCOORD3,	// Eye-space direction from vertex to light
+									uniform float4x4 model,
+									uniform float4x4 view,
+									uniform float4x4 projection,
+									uniform float3 lightDirection,			// Eye-space light direction
+									uniform float4x4 texTransform )
+{
+	FFVertexMainLitDirectional( inPos, inNormal, outPos, outEyeVector, outNormal, outLightVector, model, view, projection, lightDirection );
+	outTexCoord0 = mul( float4(inTexCoord0,0,1), texTransform ).xy;
+}
+//***************************************************************************
+void FFVertexMainSkinned(	float3 inPos : POSITION,
+							float4 inBlendIndex  : BLENDINDICES,		
+							float4 inBlendWeight : BLENDWEIGHT,		
+							out float4 outPos : POSITION,
+							uniform float numBonesPerVertex,
+							//uniform float4x4 viewProjection
+							uniform float4x4 view,
+							uniform float4x4 projection )
+{
+	float4 SkinnedPos;						
+	float4 WeightedPos = float4(0.0f, 0.0f, 0.0f, 0.0f);			
+	int nBoneIndex;							
+	float fBlendWeight;						
+	float4x4 BoneMatrix;					
+
+	for(int i=0; i<numBonesPerVertex && i<4; ++i)
+	{
+		if(i == 0) {
+			nBoneIndex = inBlendIndex.x;		
+			fBlendWeight = inBlendWeight.x;	
+		}
+		else if (i == 1) {
+			nBoneIndex = inBlendIndex.y;		
+			fBlendWeight = inBlendWeight.y;	
+		}
+		else if (i == 2) {
+			nBoneIndex = inBlendIndex.w;		
+			fBlendWeight = inBlendWeight.w;	
+		}
+		else {
+			nBoneIndex = inBlendIndex.z;		
+			fBlendWeight = inBlendWeight.z;	
+		}
+		
+		BoneMatrix = BlendMat[nBoneIndex];	
+		SkinnedPos = mul( float4(inPos,1), BoneMatrix );
+		WeightedPos += fBlendWeight * SkinnedPos;
+	}
+	
+	outPos = mul( mul( WeightedPos, view ), projection );
+}
+//***************************************************************************
+void FFVertexMainTexSkinned(	float3 inPos : POSITION,
+								float2 inTexCoord0 : TEXCOORD0,
+								float4 inBlendIndex  : BLENDINDICES,		
+								float4 inBlendWeight : BLENDWEIGHT,		
+								out float4 outPos : POSITION,
+								out float2 outTexCoord0 : TEXCOORD0,
+								uniform float numBonesPerVertex,
+								//uniform float4x4 viewProjection,
+								uniform float4x4 view,
+								uniform float4x4 projection,
+								uniform float4x4 texTransform )
+{
+	FFVertexMainSkinned( inPos, inBlendIndex, inBlendWeight, outPos, numBonesPerVertex, view, projection );
+	outTexCoord0 = mul( float4(inTexCoord0,0,1), texTransform ).xy;
+}
+//***************************************************************************
+// FFVertexMainLitPointSkinned Not Implemented
+// FFVertexMainTexLitPointSkinned Not Implemented
+//***************************************************************************
+void FFVertexMainLitDirectionalSkinned(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+										float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+										float4 inBlendIndex  : BLENDINDICES,		
+										float4 inBlendWeight : BLENDWEIGHT,		
+										out float4 outPos : POSITION,			// Projected vertex coord
+										// Use the other texture coords for lighting information.
+										out float3 outEyeVector : TEXCOORD1,	// Eye-space direction from vertex to eye
+										out float3 outNormal : TEXCOORD2,		// Eye-space per-vertex normals
+										out float3 outLightVector : TEXCOORD3,	// Eye-space direction from vertex to light
+										uniform float numBonesPerVertex,
+										uniform float4x4 view,
+										uniform float4x4 projection,
+										uniform float3 lightDirection			// Eye-space light direction
+										)
+{
+	float4 SkinnedPos;						
+	float4 WeightedPos = float4(0.0f, 0.0f, 0.0f, 0.0f);			
+	float4 SkinnedNormal;				
+	float4 WeightedNormal = float4(0.0f, 0.0f, 0.0f, 0.0f);	
+	int nBoneIndex;							
+	float fBlendWeight;						
+	float4x4 BoneMatrix;					
+
+	for(int i=0; i<numBonesPerVertex && i<4; ++i)
+	{
+		if(i == 0) {
+			nBoneIndex = inBlendIndex.x;		
+			fBlendWeight = inBlendWeight.x;	
+		}
+		else if (i == 1) {
+			nBoneIndex = inBlendIndex.y;		
+			fBlendWeight = inBlendWeight.y;	
+		}
+		else if (i == 2) {
+			nBoneIndex = inBlendIndex.w;		
+			fBlendWeight = inBlendWeight.w;	
+		}
+		else {
+			nBoneIndex = inBlendIndex.z;		
+			fBlendWeight = inBlendWeight.z;	
+		}
+		
+		BoneMatrix = BlendMat[nBoneIndex];	
+		SkinnedPos = mul( float4(inPos,1), BoneMatrix );
+		WeightedPos += fBlendWeight * SkinnedPos;
+		
+		SkinnedNormal = mul( float4(inNormal,0), BoneMatrix );
+		WeightedNormal += fBlendWeight * SkinnedNormal;
+	}
+	
+	// Calculate the vector from the view position to the vertex
+	float4 eyePos = mul( WeightedPos, view );
+	outPos = mul( eyePos, projection );
+	outNormal = mul( float4(WeightedNormal.xyz,0), view ).xyz;
+	outLightVector = -lightDirection;
+	outEyeVector = -eyePos.xyz;
+}
+//***************************************************************************
+void FFVertexMainTexLitDirectionalSkinned(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+										float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+										float2 inTexCoord0 : TEXCOORD0,
+										float4 inBlendIndex  : BLENDINDICES,		
+										float4 inBlendWeight : BLENDWEIGHT,		
+										out float4 outPos : POSITION,			// Projected vertex coord
+										out float2 outTexCoord0 : TEXCOORD0,
+										// Use the other texture coords for lighting information.
+										out float3 outEyeVector : TEXCOORD1,	// Eye-space direction from vertex to eye
+										out float3 outNormal : TEXCOORD2,		// Eye-space per-vertex normals
+										out float3 outLightVector : TEXCOORD3,	// Eye-space direction from vertex to light
+										uniform float numBonesPerVertex,
+										uniform float4x4 view,
+										uniform float4x4 projection,
+										uniform float3 lightDirection,			// Eye-space light direction
+										uniform float4x4 texTransform )
+{
+	FFVertexMainLitDirectionalSkinned( inPos, inNormal, inBlendIndex, inBlendWeight, outPos, outEyeVector, outNormal, outLightVector, numBonesPerVertex, view, projection, lightDirection );
+	outTexCoord0 = mul( float4(inTexCoord0,0,1), texTransform ).xy;
+}
+//***************************************************************************
+void FFVertexMainCol(	float3 inPos : POSITION,
+						float4 inColour : COLOR,
+						out float4 outPos : POSITION,
+						out float4 outColour : COLOR,
+						uniform float4x4 model,
+						uniform float4x4 view,
+						uniform float4x4 projection
+						)
+{
+	FFVertexMain(	inPos, outPos, model, view, projection );
+	outColour = inColour;
+}
+//***************************************************************************
+void FFVertexMainTexCol(	float3 inPos : POSITION,
+							float2 inTexCoord0 : TEXCOORD0,
+							float4 inColour : COLOR,
+							out float4 outPos : POSITION,
+							out float2 outTexCoord0 : TEXCOORD0,
+							out float4 outColour : COLOR,
+							uniform float4x4 model,
+							uniform float4x4 view,
+							uniform float4x4 projection,
+							uniform float4x4 texTransform )
+{
+	FFVertexMainTex(	inPos, inTexCoord0,
+						outPos, outTexCoord0,
+						model, view, projection, texTransform );
+	outColour = inColour;
+}
+//***************************************************************************
+// FFVertexMainLitSpotCol Not Implemented
+// FFVertexMainTexLitSpotCol Not Implemented
+//***************************************************************************
+void FFVertexMainLitPointCol(	float3 inPos : POSITION,
+								float3 inNormal : NORMAL,
+								float4 inColour : COLOR,
+								out float4 outPos : POSITION,
+								out float4 outColour : COLOR,
+								// Use the other texture coords for lighting information
+								out float3 outEyeVector : TEXCOORD1,
+								out float3 outNormal : TEXCOORD2,
+								out float3 outLightVector : TEXCOORD3,
+								uniform float4x4 model,
+								uniform float4x4 view,
+								uniform float4x4 projection,
+								uniform float3 lightPosition // Model-space light position
+								)
+{
+	FFVertexMainLitPoint( inPos, inNormal, outPos, outEyeVector, outNormal, outLightVector, model, view, projection, lightPosition );
+	outColour = inColour;
+}
+//***************************************************************************
+void FFVertexMainTexLitPointCol(	float3 inPos : POSITION,
+									float3 inNormal : NORMAL,
+									float4 inColour : COLOR,
+									float2 inTexCoord0 : TEXCOORD0,
+									out float4 outPos : POSITION,
+									out float4 outColour : COLOR,
+									out float2 outTexCoord0 : TEXCOORD0,
+									// Use the other texture coords for lighting information
+									out float3 outEyeVector : TEXCOORD1,
+									out float3 outNormal : TEXCOORD2,
+									out float3 outLightVector : TEXCOORD3,
+									uniform float4x4 model,
+									uniform float4x4 view,
+									uniform float4x4 projection,
+									uniform float3 lightPosition, // Model-space light position
+									uniform float4x4 texTransform )
+{
+	FFVertexMainLitPointCol( inPos, inNormal, inColour, outPos, outColour, outEyeVector, outNormal, outLightVector, model, view, projection, lightPosition );
+	outTexCoord0 = mul( float4(inTexCoord0,0,1), texTransform ).xy;
+}
+//***************************************************************************
+void FFVertexMainLitDirectionalCol(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+									float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+									float4 inColour : COLOR,
+									out float4 outPos : POSITION,			// Projected vertex coord
+									out float4 outColour : COLOR,
+									// Use the other texture coords for lighting information.
+									out float3 outEyeVector : TEXCOORD1,	// Eye-space direction from vertex to eye
+									out float3 outNormal : TEXCOORD2,		// Eye-space per-vertex normals
+									out float3 outLightVector : TEXCOORD3,	// Eye-space direction from vertex to light
+									uniform float4x4 model,
+									uniform float4x4 view,
+									uniform float4x4 projection,
+									uniform float3 lightDirection			// Eye-space light direction
+									)
+{
+	// Calculate the vector from the view position to the vertex
+	float4x4 modelView, modelViewProjection;
+	modelView = mul( model, view );
+	modelViewProjection = mul( modelView, projection );
+	float4 eyePos = mul( float4(inPos,1), modelView );
+	outPos = mul( float4(inPos,1), modelViewProjection );
+	outNormal = mul( float4(inNormal,0), modelView ).xyz;
+	outLightVector = -lightDirection;
+	outEyeVector = -eyePos.xyz;
+	outColour = inColour;
+}
+//***************************************************************************
+void FFVertexMainTexLitDirectionalCol(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+										float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+										float2 inTexCoord0 : TEXCOORD0,
+										float4 inColour : COLOR,
+										out float4 outPos : POSITION,			// Projected vertex coord
+										out float2 outTexCoord0 : TEXCOORD0,
+										out float4 outColour : COLOR,
+										// Use the other texture coords for lighting information.
+										out float3 outEyeVector : TEXCOORD1,	// Eye-space direction from vertex to eye
+										out float3 outNormal : TEXCOORD2,		// Eye-space per-vertex normals
+										out float3 outLightVector : TEXCOORD3,	// Eye-space direction from vertex to light
+										uniform float4x4 model,
+										uniform float4x4 view,
+										uniform float4x4 projection,
+										uniform float3 lightDirection,			// Eye-space light direction
+										uniform float4x4 texTransform )
+{
+	FFVertexMainLitDirectionalCol( inPos, inNormal, inColour, outPos, outColour, outEyeVector, outNormal, outLightVector, model, view, projection, lightDirection );
+	outTexCoord0 = mul( float4(inTexCoord0,0,1), texTransform ).xy;
+}
+//***************************************************************************
+void FFVertexMainSkinnedCol(	float3 inPos : POSITION,
+								float4 inColour : COLOR,
+								float4 inBlendIndex  : BLENDINDICES,		
+								float4 inBlendWeight : BLENDWEIGHT,		
+								out float4 outPos : POSITION,
+								out float4 outColour : COLOR,
+								uniform float numBonesPerVertex,
+								uniform float4x4 view,
+								uniform float4x4 projection
+								//uniform float4x4 viewProjection
+								)
+{
+	FFVertexMainSkinned(	inPos,	inBlendIndex, inBlendWeight,
+							outPos, 
+							numBonesPerVertex, view, projection );
+	outColour = inColour;
+}
+//***************************************************************************
+void FFVertexMainTexSkinnedCol(	float3 inPos : POSITION,
+								float2 inTexCoord0 : TEXCOORD0,
+								float4 inColour : COLOR,
+								float4 inBlendIndex  : BLENDINDICES,		
+								float4 inBlendWeight : BLENDWEIGHT,		
+								out float4 outPos : POSITION,
+								out float2 outTexCoord0 : TEXCOORD0,
+								out float4 outColour : COLOR,
+								uniform float numBonesPerVertex,
+								uniform float4x4 view,
+								uniform float4x4 projection,
+								uniform float4x4 texTransform )
+{
+	FFVertexMainSkinnedCol(	inPos,	inColour, inBlendIndex, inBlendWeight,
+							outPos, outColour,
+							numBonesPerVertex, view, projection );
+	outTexCoord0 = mul( float4(inTexCoord0,0,1), texTransform ).xy;
+}
+//***************************************************************************
+// FFVertexMainLitSpotSkinned Not Implemented
+// FFVertexMainTexLitSpotSkinned Not Implemented
+// FFVertexMainLitPointSkinnedCol Not Implemented
+// FFVertexMainTexLitPointSkinnedCol Not Implemented
+//***************************************************************************
+void FFVertexMainLitDirectionalSkinnedCol(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+											float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+											float4 inBlendIndex  : BLENDINDICES,		
+											float4 inBlendWeight : BLENDWEIGHT,		
+											float4 inColour : COLOR,
+											out float4 outPos : POSITION,			// Projected vertex coord
+											out float4 outColour : COLOR,
+											// Use the other texture coords for lighting information.
+											out float3 outEyeVector : TEXCOORD1,	// Eye-space direction from vertex to eye
+											out float3 outNormal : TEXCOORD2,		// Eye-space per-vertex normals
+											out float3 outLightVector : TEXCOORD3,	// Eye-space direction from vertex to light
+											uniform float numBonesPerVertex,
+											uniform float4x4 view,
+											uniform float4x4 projection,
+											uniform float3 lightDirection			// Eye-space light direction
+											)
+{
+	FFVertexMainLitDirectionalSkinned( inPos, inNormal, inBlendIndex, inBlendWeight,
+									   outPos, outEyeVector, outNormal, outLightVector,
+									   numBonesPerVertex, view, projection, lightDirection );
+	outColour = inColour;
+}
+//***************************************************************************
+void FFVertexMainTexLitDirectionalSkinnedCol(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+												float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+												float4 inBlendIndex  : BLENDINDICES,		
+												float4 inBlendWeight : BLENDWEIGHT,		
+												float4 inColour : COLOR,
+												float2 inTexCoord0 : TEXCOORD0,
+												out float4 outPos : POSITION,			// Projected vertex coord
+												out float4 outColour : COLOR,
+												out float2 outTexCoord0 : TEXCOORD0,
+												// Use the other texture coords for lighting information.
+												out float3 outEyeVector : TEXCOORD1,	// Eye-space direction from vertex to eye
+												out float3 outNormal : TEXCOORD2,		// Eye-space per-vertex normals
+												out float3 outLightVector : TEXCOORD3,	// Eye-space direction from vertex to light
+												uniform float numBonesPerVertex,
+												uniform float4x4 view,
+												uniform float4x4 projection,
+												uniform float3 lightDirection,			// Eye-space light direction
+												uniform float4x4 texTransform )
+{
+	FFVertexMainLitDirectionalSkinnedCol( inPos, inNormal, inBlendIndex, inBlendWeight, inColour,
+										  outPos, outColour, outEyeVector, outNormal, outLightVector,
+										  numBonesPerVertex, view, projection, lightDirection );
+	outTexCoord0 = mul( float4(inTexCoord0,0,1), texTransform ).xy;
+}
+//***************************************************************************
+void FFVertexMainLighting(	float3 inPos : POSITION,
+	            			out float4 outPos : POSITION,
+							uniform float4x4 model,
+							uniform float4x4 view,
+							uniform float4x4 projection
+							 )
+{
+	outPos = mul( mul ( mul( float4(inPos,1), model ), view ), projection );
+}
+//***************************************************************************
+void FFVertexMainTexLighting(	float3 inPos : POSITION,
+								float2 inTexCoord0 : TEXCOORD0,
+	            				out float4 outPos : POSITION,
+								uniform float4x4 model,
+								uniform float4x4 view,
+								uniform float4x4 projection )
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+//FFVertexMainLitSpotLighting
+//FFVertexMainTexLitSpotLighting
+//***************************************************************************
+void FFVertexMainLitPointLighting(	float3 inPos : POSITION,
+									float3 inNormal : NORMAL,
+			            			out float4 outPos : POSITION,
+									uniform float4x4 model,
+									uniform float4x4 view,
+									uniform float4x4 projection )
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+void FFVertexMainTexLitPointLighting(	float3 inPos : POSITION,
+										float3 inNormal : NORMAL,
+										float2 inTexCoord0 : TEXCOORD0,
+				            			out float4 outPos : POSITION,
+										uniform float4x4 model,
+										uniform float4x4 view,
+										uniform float4x4 projection )
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+void FFVertexMainLitDirectionalLighting(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+											float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+											out float4 outPos : POSITION,			// Projected vertex coord
+											uniform float4x4 model,
+											uniform float4x4 view,
+											uniform float4x4 projection )
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+void FFVertexMainTexLitDirectionalLighting(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+											float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+											float2 inTexCoord0 : TEXCOORD0,
+											out float4 outPos : POSITION,			// Projected vertex coord
+											uniform float4x4 model,
+											uniform float4x4 view,
+											uniform float4x4 projection )
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+void FFVertexMainSkinnedLighting(	float3 inPos : POSITION,
+									float4 inBlendIndex  : BLENDINDICES,		
+									float4 inBlendWeight : BLENDWEIGHT,		
+									out float4 outPos : POSITION,
+									uniform float numBonesPerVertex,
+									uniform float4x4 view,
+									uniform float4x4 projection )
+{
+	FFVertexMainSkinned( inPos, inBlendIndex, inBlendWeight, outPos, numBonesPerVertex, view, projection );
+}
+//***************************************************************************
+void FFVertexMainTexSkinnedLighting(	float3 inPos : POSITION,
+										float2 inTexCoord0 : TEXCOORD0,
+										float4 inBlendIndex  : BLENDINDICES,		
+										float4 inBlendWeight : BLENDWEIGHT,		
+										out float4 outPos : POSITION,
+										uniform float numBonesPerVertex,
+										uniform float4x4 view,
+										uniform float4x4 projection )
+{
+	FFVertexMainSkinned( inPos, inBlendIndex, inBlendWeight, outPos, numBonesPerVertex, view, projection );
+}
+//***************************************************************************
+//FFVertexMainLitSpotSkinnedLighting
+//FFVertexMainTexLitSpotSkinnedLighting
+//FFVertexMainLitPointSkinnedLighting
+//FFVertexMainTexLitPointSkinnedLighting
+//***************************************************************************
+void FFVertexMainLitDirectionalSkinnedLighting(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+												float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+												float4 inBlendIndex  : BLENDINDICES,		
+												float4 inBlendWeight : BLENDWEIGHT,		
+												out float4 outPos : POSITION,			// Projected vertex coord
+												uniform float numBonesPerVertex,
+												uniform float4x4 view,
+												uniform float4x4 projection
+									)
+{
+	FFVertexMainSkinned( inPos, inBlendIndex, inBlendWeight, outPos, numBonesPerVertex, view, projection );
+}
+//***************************************************************************
+void FFVertexMainTexLitDirectionalSkinnedLighting(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+													float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+													float2 inTexCoord0 : TEXCOORD0,
+													float4 inBlendIndex  : BLENDINDICES,		
+													float4 inBlendWeight : BLENDWEIGHT,		
+													out float4 outPos : POSITION,			// Projected vertex coord
+													uniform float numBonesPerVertex,
+													uniform float4x4 view,
+													uniform float4x4 projection
+									)
+{
+	FFVertexMainSkinned( inPos, inBlendIndex, inBlendWeight, outPos, numBonesPerVertex, view, projection );
+}
+//***************************************************************************
+void FFVertexMainColLighting(	float3 inPos : POSITION,
+								float4 inColour : COLOR,
+								out float4 outPos : POSITION,
+								uniform float4x4 model,
+								uniform float4x4 view,
+								uniform float4x4 projection
+								 )
+{
+	FFVertexMain(	inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+void FFVertexMainTexColLighting(	float3 inPos : POSITION,
+									float2 inTexCoord0 : TEXCOORD0,
+									float4 inColour : COLOR,
+									out float4 outPos : POSITION,
+									uniform float4x4 model,
+									uniform float4x4 view,
+									uniform float4x4 projection
+									)
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+//FFVertexMainLitSpotColLighting
+//FFVertexMainTexLitSpotColLighting
+//***************************************************************************
+void FFVertexMainLitPointColLighting(	float3 inPos : POSITION,
+										float3 inNormal : NORMAL,
+										float4 inColour : COLOR,
+										out float4 outPos : POSITION,
+										uniform float4x4 model,
+										uniform float4x4 view,
+										uniform float4x4 projection
+										)
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+void FFVertexMainTexLitPointColLighting(	float3 inPos : POSITION,
+											float3 inNormal : NORMAL,
+											float4 inColour : COLOR,
+											float2 inTexCoord0 : TEXCOORD0,
+											out float4 outPos : POSITION,
+											uniform float4x4 model,
+											uniform float4x4 view,
+											uniform float4x4 projection
+											)
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+void FFVertexMainLitDirectionalColLighting(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+											float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+											float4 inColour : COLOR,
+											out float4 outPos : POSITION,			// Projected vertex coord
+											uniform float4x4 model,
+											uniform float4x4 view,
+											uniform float4x4 projection
+											)
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+void FFVertexMainTexLitDirectionalColLighting(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+												float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+												float2 inTexCoord0 : TEXCOORD0,
+												float4 inColour : COLOR,
+												out float4 outPos : POSITION,			// Projected vertex coord
+												uniform float4x4 model,
+												uniform float4x4 view,
+												uniform float4x4 projection
+												)
+{
+	FFVertexMain( inPos, outPos, model, view, projection );
+}
+//***************************************************************************
+void FFVertexMainSkinnedColLighting(	float3 inPos : POSITION,
+										float4 inColour : COLOR,
+										float4 inBlendIndex  : BLENDINDICES,		
+										float4 inBlendWeight : BLENDWEIGHT,		
+										out float4 outPos : POSITION,
+										uniform float numBonesPerVertex,
+										uniform float4x4 view,
+										uniform float4x4 projection
+										)
+{
+	FFVertexMainSkinned(	inPos,	inBlendIndex, inBlendWeight,
+							outPos, 
+							numBonesPerVertex, view, projection );
+}
+//***************************************************************************
+void FFVertexMainTexSkinnedColLighting(	float3 inPos : POSITION,
+										float2 inTexCoord0 : TEXCOORD0,
+										float4 inColour : COLOR,
+										float4 inBlendIndex  : BLENDINDICES,		
+										float4 inBlendWeight : BLENDWEIGHT,		
+										out float4 outPos : POSITION,
+										uniform float numBonesPerVertex,
+										uniform float4x4 view,
+										uniform float4x4 projection
+										)
+{
+	FFVertexMainSkinned( inPos, inBlendIndex, inBlendWeight, outPos, numBonesPerVertex, view, projection );
+}
+//***************************************************************************
+//FFVertexMainLitSpotSkinnedColLighting
+//FFVertexMainTexLitSpotSkinnedColLighting
+//FFVertexMainLitPointSkinnedColLighting
+//FFVertexMainTexLitPointSkinnedColLighting
+//***************************************************************************
+void FFVertexMainLitDirectionalSkinnedColLighting(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+													float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+													float4 inBlendIndex  : BLENDINDICES,		
+													float4 inBlendWeight : BLENDWEIGHT,		
+													float4 inColour : COLOR,
+													out float4 outPos : POSITION,			// Projected vertex coord
+													uniform float numBonesPerVertex,
+													uniform float4x4 view,
+													uniform float4x4 projection
+													)
+{
+	FFVertexMainSkinned( inPos, inBlendIndex, inBlendWeight, outPos, numBonesPerVertex, view, projection );
+}
+//***************************************************************************
+void FFVertexMainTexLitDirectionalSkinnedColLighting(	float3 inPos : POSITION,				// Object-space vertex coord (or world space for skinned objects)
+														float3 inNormal : NORMAL,				// Object-space normal (or world space for skinned objects)
+														float4 inBlendIndex  : BLENDINDICES,		
+														float4 inBlendWeight : BLENDWEIGHT,		
+														float4 inColour : COLOR,
+														float2 inTexCoord0 : TEXCOORD0,
+														out float4 outPos : POSITION,			// Projected vertex coord
+														uniform float numBonesPerVertex,
+														uniform float4x4 view,
+														uniform float4x4 projection
+														)
+{
+	FFVertexMainSkinned( inPos, inBlendIndex, inBlendWeight, outPos, numBonesPerVertex, view, projection );
+}
+//***************************************************************************
+void FFFragmentMain( out float4 outCol : COLOR )
+{
+	outCol = float4( 1,0,1,1 );
+}
+//***************************************************************************
+void FFFragmentMainTex(	float2 inTexCoord0 : TEXCOORD0,
+						uniform sampler2D texture0,
+						out float4 outCol : COLOR )
+{
+	outCol = tex2D( texture0, inTexCoord0 );
+}
+//***************************************************************************
+// Core lighting calculation
+void CalculateLighting( float3 inNormal,			// Eye-space normal of pixel
+					    float3 inCamera,			// Eye-space direction from vertex to eye
+						float3 inLight,				// Eye-space direction from vertex to light
+						float3 lightDiffuseCol,
+						float3 lightAmbientCol,
+						float3 lightSpecularCol,
+						//float3 materialDiffuseCol,
+						//float3 materialAmbientCol,
+						float3 materialSpecularCol,
+						float3 materialEmissiveCol,
+						float3 materialFresnelCol,
+						float materialFresnelPower,
+						float specularPower,
+						out float3 outBaseCol,
+						out float3 outAdditiveCol )
+{
+	const float3 materialDiffuseCol=float3( 1,1,1 );
+	const float3 materialAmbientCol=float3( 1,1,1 );
+
+	float3 n = normalize( inNormal );
+	float3 v = normalize( inCamera );
+	float3 l = normalize( -inLight );
+
+	float3 halfVector = normalize( l + v );
+	float diffuse = saturate( dot( n, l ) );
+
+	float specular = 0.0f;
+		if ( specularPower > 0 )
+			specular = pow( saturate( dot( n, halfVector ) ), specularPower );
+		else
+			specular = 1;
+
+	outBaseCol = lightDiffuseCol * materialDiffuseCol * diffuse +
+				 lightAmbientCol * materialAmbientCol +
+				 materialEmissiveCol;
+	outAdditiveCol = lightSpecularCol * materialSpecularCol * specular;
+	// Add a fresnel rim-lighting effect
+	outAdditiveCol += materialFresnelCol * saturate( pow( (1-dot(v,n)), materialFresnelPower ) );
+}
+//***************************************************************************
+void FFFragmentMainLit(	float3 inPos : TEXCOORD1,			// Model-space vector from eye to pixel
+						float3 inNormal : TEXCOORD2,		// Model-space per-vertex normals
+						float3 inLightVector : TEXCOORD3,	// Model-space normal from vertex to light
+						uniform float3 lightDiffuseCol,
+						uniform float3 lightAmbientCol,
+						uniform float3 lightSpecularCol,
+						uniform float4x4 materialMatrix,
+						out float4 outCol : COLOR0 )
+{
+	float3 baseCol;
+	float3 additiveCol;
+
+	float3 materialSpecularCol;
+	float3 materialEmissiveCol;
+	float3 materialFresnelCol;
+	float materialFresnelPower;
+	float specularPower;
+	materialSpecularCol = materialMatrix[0].xyz;
+	materialEmissiveCol = materialMatrix[1].xyz;
+	materialFresnelCol = materialMatrix[2].xyz;
+	materialFresnelPower = materialMatrix[3].x;
+	specularPower = materialMatrix[3].y;
+
+	CalculateLighting(	inNormal, inPos, inLightVector,
+						lightDiffuseCol, lightAmbientCol, lightSpecularCol,
+						/*materialDiffuseCol, materialAmbientCol,*/ materialSpecularCol, materialEmissiveCol, materialFresnelCol,
+						materialFresnelPower, specularPower,
+						baseCol, additiveCol );
+
+	outCol = float4( saturate( baseCol + additiveCol ), 1 );
+}
+//***************************************************************************
+void FFFragmentMainTexLit(	float2 inTexCoord0 : TEXCOORD0,
+							float3 inPos : TEXCOORD1,			// Eye-space vector from eye to pixel
+							float3 inNormal : TEXCOORD2,		// Eye-space per-vertex normals
+							float3 inLightVector : TEXCOORD3,	// Eye-space normal from vertex to light
+							uniform sampler2D texture0,
+							uniform float3 lightDiffuseCol,
+							uniform float3 lightAmbientCol,
+							uniform float3 lightSpecularCol,
+							uniform float4x4 materialMatrix,
+							out float4 outCol : COLOR0 )
+{
+	float3 baseCol;
+	float3 additiveCol;
+
+	float3 materialSpecularCol;
+	float3 materialEmissiveCol;
+	float3 materialFresnelCol;
+	float materialFresnelPower;
+	float specularPower;
+	materialSpecularCol = materialMatrix[0].xyz;
+	materialEmissiveCol = materialMatrix[1].xyz;
+	materialFresnelCol = materialMatrix[2].xyz;
+	materialFresnelPower = materialMatrix[3].x;
+	specularPower = materialMatrix[3].y;
+
+	CalculateLighting(	inNormal, inPos, inLightVector,
+						lightDiffuseCol, lightAmbientCol, lightSpecularCol,
+						/*materialDiffuseCol, materialAmbientCol,*/ materialSpecularCol, materialEmissiveCol, materialFresnelCol,
+						materialFresnelPower, specularPower,
+						baseCol, additiveCol );
+	float4 texCol = tex2D( texture0, inTexCoord0 );
+    outCol = float4( saturate( baseCol * texCol.rgb + additiveCol ), texCol.a );
+}
+//***************************************************************************
+void FFFragmentMainCol( float4 inCol : COLOR0,
+						out float4 outCol : COLOR )
+{
+	outCol = inCol;
+}
+//***************************************************************************
+void FFFragmentMainTexCol(	float2 inTexCoord0 : TEXCOORD0,
+							float4 inCol : COLOR,
+							uniform sampler2D texture0,
+							out float4 outCol : COLOR )
+{
+	outCol = tex2D( texture0, inTexCoord0 ) * inCol;
+}
+//***************************************************************************
+void FFFragmentMainLitCol(	float4 inCol : COLOR,
+							float3 inPos : TEXCOORD1,			// Model-space vector from eye to pixel
+							float3 inNormal : TEXCOORD2,		// Model-space per-vertex normals
+							float3 inLightVector : TEXCOORD3,	// Model-space normal from vertex to light
+							uniform float3 lightDiffuseCol,
+							uniform float3 lightAmbientCol,
+							uniform float3 lightSpecularCol,
+							uniform float4x4 materialMatrix,
+							out float4 outCol : COLOR0 )
+{
+	float3 baseCol;
+	float3 additiveCol;
+
+	float3 materialSpecularCol;
+	float3 materialEmissiveCol;
+	float3 materialFresnelCol;
+	float materialFresnelPower;
+	float specularPower;
+	materialSpecularCol = materialMatrix[0].xyz;
+	materialEmissiveCol = materialMatrix[1].xyz;
+	materialFresnelCol = materialMatrix[2].xyz;
+	materialFresnelPower = materialMatrix[3].x;
+	specularPower = materialMatrix[3].y;
+
+	CalculateLighting(	inNormal, inPos, inLightVector,
+						lightDiffuseCol, lightAmbientCol, lightSpecularCol,
+						/*materialDiffuseCol, materialAmbientCol,*/ materialSpecularCol, materialEmissiveCol, materialFresnelCol,
+						materialFresnelPower, specularPower,
+						baseCol, additiveCol );
+	outCol = float4( saturate(baseCol * inCol.rgb + additiveCol ), inCol.a );
+}
+//***************************************************************************
+void FFFragmentMainTexLitCol(	float2 inTexCoord0 : TEXCOORD0,
+								float3 inPos : TEXCOORD1,			// Model-space vector from eye to pixel
+								float3 inNormal : TEXCOORD2,		// Model-space normal at pixel
+								float3 inLightVector : TEXCOORD3,	// Model-space vector from vertex towards light
+								float4 inCol : COLOR,
+								uniform sampler2D texture0,
+								uniform float3 lightDiffuseCol,
+								uniform float3 lightAmbientCol,
+								uniform float3 lightSpecularCol,
+								uniform float4x4 materialMatrix,
+								out float4 outCol : COLOR0 )
+{
+	float3 baseCol;
+	float3 additiveCol;
+
+	float3 materialSpecularCol;
+	float3 materialEmissiveCol;
+	float3 materialFresnelCol;
+	float materialFresnelPower;
+	float specularPower;
+	materialSpecularCol = materialMatrix[0].xyz;
+	materialEmissiveCol = materialMatrix[1].xyz;
+	materialFresnelCol = materialMatrix[2].xyz;
+	materialFresnelPower = materialMatrix[3].x;
+	specularPower = materialMatrix[3].y;
+
+	CalculateLighting(	inNormal, inPos, inLightVector,
+						lightDiffuseCol, lightAmbientCol, lightSpecularCol,
+						/*materialDiffuseCol, materialAmbientCol,*/ materialSpecularCol, materialEmissiveCol, materialFresnelCol,
+						materialFresnelPower, specularPower,
+						baseCol, additiveCol );
+	outCol = float4( saturate( baseCol * inCol.rgb * tex2D( texture0, inTexCoord0 ).rgb + additiveCol ), inCol.a );
+}

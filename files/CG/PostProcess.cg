@@ -1,0 +1,303 @@
+#if X_XENON
+#define X_DISCARD outColour = float4( 1,0,1,0 ); return;
+#else
+#define X_DISCARD discard
+#endif
+
+#define FXAA_PC 1
+#define FXAA_GLSL_120 1
+#include "FXaa3_9.h"
+
+// FRAGMENT PROGRAMS
+void Copy1x1( float4 texCoord : TEXCOORD0,
+	  float4 ignoredVertexColour : COLOR0,
+      uniform sampler2D texture0,
+      out float4 outCol : COLOR )
+{
+	outCol = float4( tex2D( texture0, texCoord.xy ).rgb, 1 );
+}
+
+void Copy1x2( float4 texCoord : TEXCOORD0,
+	  float4 ignoredVertexColour : COLOR0,
+      uniform sampler2D texture0,
+      out float4 outCol : COLOR )
+{
+	outCol = float4( tex2D( texture0, texCoord.xy ).rgb, 1 );
+	outCol += float4( tex2D( texture0, texCoord.xy + float2(0,texCoord.w ) ).rgb, 1 );
+	outCol /= 2;
+}
+
+void Copy2x2( float4 texCoord : TEXCOORD0,
+	  float4 ignoredVertexColour : COLOR0,
+      uniform sampler2D texture0,
+      out float4 outCol : COLOR )
+{
+	outCol = float4( tex2D( texture0, texCoord.xy ).rgb, 1 );
+	outCol += float4( tex2D( texture0, texCoord.xy + float2(0,texCoord.w ) ).rgb, 1 );
+	outCol += float4( tex2D( texture0, texCoord.xy + float2(texCoord.z,0 ) ).rgb, 1 );
+	outCol += float4( tex2D( texture0, texCoord.xy + texCoord.zw ).rgb, 1 );
+	outCol /= 4;
+}
+
+void Copy2x4( float4 texCoord : TEXCOORD0,
+	  float4 ignoredVertexColour : COLOR0,
+      uniform sampler2D texture0,
+      out float4 outCol : COLOR )
+{
+	int x,y;
+	outCol = float4(0,0,0,0);
+	for ( x=0; x<2; x++ ){
+		for ( y=0; y<4; y++ ){
+			outCol += float4( tex2D( texture0, texCoord.xy + float2(x,y) * texCoord.zw ).rgb, 1 );
+		}
+	}
+	outCol /= 8;
+}
+
+void Copy4x4( float4 texCoord : TEXCOORD0,
+	  float4 ignoredVertexColour : COLOR0,
+      uniform sampler2D texture0,
+      out float4 outCol : COLOR )
+{
+	int x,y;
+	outCol = float4(0,0,0,0);
+	for ( x=0; x<4; x++ ){
+		for ( y=0; y<4; y++ ){
+			outCol += float4( tex2D( texture0, texCoord.xy + float2(x,y) * texCoord.zw ).rgb, 1 );
+		}
+	}
+	outCol /= 16;
+}
+
+void CopyWithLuminance( float4 texCoord : TEXCOORD0,
+					    float4 ignoredVertexColour : COLOR0,
+						uniform sampler2D texture0,
+						out float4 outCol : COLOR )
+{
+	outCol.rgb = tex2D( texture0, texCoord.xy ).rgb;
+	//outCol.a = sqrt( dot( outCol.rgb, float3(0.299, 0.587, 0.114) ) );
+	outCol.a = dot( outCol.rgb, float3(0.299, 0.587, 0.114) );
+}
+
+void CopyFxaa( float4 texCoord : TEXCOORD0,
+			   float4 ignoredVertexColour : COLOR0,
+			   uniform sampler2D texture0,
+			   uniform float2 rcpFrame,
+			   out float4 outCol : COLOR )
+{
+	float4 unused = float4(1,1,1,1);
+	outCol = FxaaPixelShader( texCoord.xy, unused, texture0, rcpFrame, unused );
+	//outCol.rgb = tex2D( texture0, texCoord.xy ).aaa;
+}
+
+void
+ApplySepia( inout float4 c,
+		    float4 sepiaColour )
+{
+	float3 vBW = float3( 0.3, 0.59, 0.11);
+	float3 col = c.rgb;
+	float brightness = dot( col, vBW );
+
+	c = float4(lerp(col, brightness * sepiaColour.rgb, sepiaColour.a), 1.0);
+}
+
+void CopySepia1x1( float4 texCoord : TEXCOORD0,
+				   float4 sepiaColour : COLOR0,	// RGB values are the colour, Alpha is the weighting
+				   uniform sampler2D texture0,
+				   out float4 outCol : COLOR )
+{
+	Copy1x1( texCoord, sepiaColour, texture0, outCol );
+	ApplySepia( outCol, sepiaColour );
+}
+
+void CopySepia1x2( float4 texCoord : TEXCOORD0,
+				   float4 sepiaColour : COLOR0,	// RGB values are the colour, Alpha is the weighting
+				   uniform sampler2D texture0,
+				   out float4 outCol : COLOR )
+{
+	Copy1x2( texCoord, sepiaColour, texture0, outCol );
+	ApplySepia( outCol, sepiaColour );
+}
+
+void CopySepia2x2( float4 texCoord : TEXCOORD0,
+				   float4 sepiaColour : COLOR0,	// RGB values are the colour, Alpha is the weighting
+				   uniform sampler2D texture0,
+				   out float4 outCol : COLOR )
+{
+	Copy2x2( texCoord, sepiaColour, texture0, outCol );
+	ApplySepia( outCol, sepiaColour );
+}
+
+void CopySepia2x4( float4 texCoord : TEXCOORD0,
+				   float4 sepiaColour : COLOR0,	// RGB values are the colour, Alpha is the weighting
+				   uniform sampler2D texture0,
+				   out float4 outCol : COLOR )
+{
+	Copy2x4( texCoord, sepiaColour, texture0, outCol );
+	ApplySepia( outCol, sepiaColour );
+}
+
+void CopySepia4x4( float4 texCoord : TEXCOORD0,
+				   float4 sepiaColour : COLOR0,	// RGB values are the colour, Alpha is the weighting
+				   uniform sampler2D texture0,
+				   out float4 outCol : COLOR )
+{
+	Copy4x4( texCoord, sepiaColour, texture0, outCol );
+	ApplySepia( outCol, sepiaColour );
+}
+
+void CopyFxaaSepia( float4 texCoord : TEXCOORD0,
+				    float4 sepiaColour : COLOR0,	// RGB values are the colour, Alpha is the weighting
+				    uniform sampler2D texture0,
+					uniform float2 rcpFrame,
+				    out float4 outCol : COLOR )
+{
+	CopyFxaa( texCoord, sepiaColour, texture0, rcpFrame, outCol );
+	ApplySepia( outCol, sepiaColour );
+}
+
+float GetDepth( sampler2D texture, float2 texCoord )
+{
+#if X_PS3
+	/// Taken from Sony site "https://ps3.scedev.net/forums/thread/8376"
+	float3 depthFactor = float3(65536.0/16777215.0, 256.0/16777215.0, 1.0/16777215.0);
+	float3 depthColor = tex2D( texture, texCoord ).arg;
+	return dot( round( depthColor * 255.0 ), depthFactor );
+#else
+	return tex2D( texture, texCoord ).r;
+#endif
+}
+
+void Silhouette( float2 texCoord : TEXCOORD0,
+				 float4 wormOpacity : COLOR0,
+				 uniform sampler2D texture0,	// Pre-worm colour texture
+				 uniform sampler2D texture1,	// Pre-worm depth texture
+				 uniform sampler2D texture2,	// Silhoutted worm colour texture
+				 uniform sampler2D texture3,	// Silhoutted worm depth texture
+				 out float4 outColour : COLOR0,
+				 out float outDepth : DEPTH )
+{
+	float fWormDepth = GetDepth( texture3, texCoord );
+	float fSceneDepth = GetDepth( texture1, texCoord );
+	const float4 fillColour = float4( 0.25,0.25,0.25,0.5 );
+
+	if ( fWormDepth >= 1.0 ){
+		// Nothing rendered in worm scene, just copy the scene accross
+		outDepth = fSceneDepth;
+		outColour = tex2D( texture0, texCoord );
+	}else if ( fSceneDepth < fWormDepth ){
+		float fOpacity = fillColour.a * wormOpacity.a;
+		outColour = lerp( tex2D( texture0, texCoord ), fillColour, fOpacity );
+		outDepth = fSceneDepth;
+	}else{
+		float4 fSrc = tex2D( texture2, texCoord );
+		outColour = lerp( tex2D( texture0, texCoord ), fSrc, wormOpacity.a );
+		outDepth = fWormDepth;
+	}
+}
+
+// A Stencil buffer is used to mask out any pixels that are not the worm.
+// As a result, this function is only called for 'worm pixels'
+void Silhouette_PC( float2 texCoord : TEXCOORD0,
+				 uniform sampler2D texture0,	// Pre-worm colour texture
+				 uniform sampler2D texture1,	// Pre-worm depth texture
+				 uniform sampler2D texture2,	// Silhoutted worm depth texture
+				 out float4 outColour : COLOR0,
+				 out float outDepth : DEPTH )
+{
+	float fWormDepth = GetDepth( texture2, texCoord );
+	float fSceneDepth = GetDepth( texture1, texCoord );
+	const float4 fillColour = float4( 0.25,0.25,0.25,0.5 );
+
+	if ( fSceneDepth < fWormDepth ){
+		// The worm is obscurred - draw the silhouette
+		outColour.rgb = lerp( tex2D( texture0, texCoord ).rgb, fillColour.rgb, fillColour.a );
+		outColour.a = 1.0;
+	}else{
+		// The worm is visible
+		outColour = float4( 0,0,0,0 );
+	}
+	outDepth = fWormDepth;
+}
+
+void Outline(	float4 texCoord : TEXCOORD0,	// The z and w components contain the size of a pixel in texture space
+				float4 outlineColour : COLOR0,	// The outline colour - alpha value is used to blend this with the destination
+				uniform sampler2D texture0,		// Silhoutted worm depth texture
+				out float4 outColour : COLOR0 )
+{
+	// This function should only get called for pixels that are 'worm pixels'
+	const float fALongWayAway = 1;
+	float2 pixelSize = texCoord.zw;
+
+	// We want an outline here if this is an edge pixel
+	float fSourceDepth1 = GetDepth( texture0, texCoord.xy + float2( -pixelSize.x, -pixelSize.y ) );
+	float fSourceDepth2 = GetDepth( texture0, texCoord.xy + float2(  pixelSize.x, -pixelSize.y ) );
+	float fSourceDepth3 = GetDepth( texture0, texCoord.xy + float2(  pixelSize.x,  pixelSize.y ) );
+	float fSourceDepth4 = GetDepth( texture0, texCoord.xy + float2( -pixelSize.x,  pixelSize.y ) );
+	if ( fSourceDepth1 >= fALongWayAway ||
+		 fSourceDepth2 >= fALongWayAway ||
+		 fSourceDepth3 >= fALongWayAway ||
+		 fSourceDepth4 >= fALongWayAway )
+	{
+		outColour = outlineColour;
+	}else{
+		X_DISCARD;
+	}
+}
+
+void RecombineWorms(	float4 texCoord : TEXCOORD0,
+						float4 wormOpacity : COLOR0,
+						uniform sampler2D texture0,	// Pre-worm colour texture
+						uniform sampler2D texture1,	// Pre-worm depth texture
+						uniform sampler2D texture2,	// Silhouetted worm colour texture
+						uniform sampler2D texture3,	// Silhouetted worm depth texture
+						out float4 outColour : COLOR0,
+						out float outDepth : DEPTH )
+{
+	const float fALongWayAway = 1;
+	float fWormDepth = GetDepth( texture3, texCoord.xy );
+	float fSceneDepth = GetDepth( texture1, texCoord.xy );
+	float4 wormColour = tex2D( texture0, texCoord.xy );
+
+	if ( fWormDepth >= fALongWayAway )
+	{
+		// There's no worm pixel here so just draw the pre-worm values
+		outColour = float4( wormColour.rgb, 1 );
+		outDepth = fSceneDepth;
+	}else{
+		outColour.rgb = lerp( wormColour.rgb, tex2D( texture2, texCoord.xy ).rgb, wormOpacity.a );
+		outColour.a = 1;
+		outDepth = min( fSceneDepth, fWormDepth );
+	}
+}
+
+// VERTEX PROGRAMS
+
+void
+VertexMain( float4 inPos : POSITION,
+		    float4 inTexCoord : TEXCOORD0,
+			float4 inColour : COLOR0,
+
+#if X_XENON
+			uniform float4 textureSize0,
+#endif
+#if X_PS3
+			uniform float4 constColourSet,
+#endif
+
+			out float4 outPos : POSITION,
+			out float4 outTexCoord : TEXCOORD0,
+			out float4 outColour : COLOR0 )
+{
+	outPos = inPos;
+	outTexCoord = inTexCoord;
+#if X_PS3
+	outColour = constColourSet;
+#else
+	outColour = inColour;
+#endif
+#if X_XENON
+	// On xbox we need a small offset because the texture coord is the centre of a texel and not the corner
+	outTexCoord.xy += 0.5 / textureSize0.xy;
+#endif
+}

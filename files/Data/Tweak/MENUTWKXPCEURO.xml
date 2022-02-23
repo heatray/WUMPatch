@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xomArchive>
+  <xomTypes>
+    <XContainer/>
+    <XDataBank/>
+  </xomTypes>
+  <xomObjects>
+    <XDataBank id="id-0" Xid="1">
+      <Section>0</Section>
+    </XDataBank>
+  </xomObjects>
+</xomArchive>

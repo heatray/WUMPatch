@@ -98,6 +98,7 @@ ApplySepia( inout float4 c,
 	float3 col = c.rgb;
 	float brightness = dot( col, vBW );
 
+	sepiaColour.a = 0.0;
 	c = float4(lerp(col, brightness * sepiaColour.rgb, sepiaColour.a), 1.0);
 }
 
@@ -207,7 +208,7 @@ void Silhouette_PC( float2 texCoord : TEXCOORD0,
 {
 	float fWormDepth = GetDepth( texture2, texCoord );
 	float fSceneDepth = GetDepth( texture1, texCoord );
-	const float4 fillColour = float4( 0.25,0.25,0.25,0.5 );
+	const float4 fillColour = float4( 0.25,0.25,0.25,0.1 );
 
 	if ( fSceneDepth < fWormDepth ){
 		// The worm is obscurred - draw the silhouette

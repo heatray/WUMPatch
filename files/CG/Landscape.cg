@@ -187,6 +187,7 @@ LandscapeFragmentMain(	float4 inTexCoord0 : TEXCOORD0,
 
 	// Add a fresnel rim-lighting effect
 	additiveCol += (0.5 + fShadowScale/2 ) * materialFresnelCol * globalFresnel * clamp( pow( (1-dot(v,n)), materialFresnelPower ), 0, 1 );
+	additiveCol = 0;
 
 	float4 texCol = tex2D( texture0, inTexCoord0.xy );
     outCol = float4( saturate( baseCol * texCol.rgb + additiveCol ), texCol.a ) * inVertexColour;

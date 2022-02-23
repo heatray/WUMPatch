@@ -770,7 +770,7 @@ void CalculateLighting( float3 inNormal,			// Eye-space normal of pixel
 				 materialEmissiveCol;
 	outAdditiveCol = lightSpecularCol * materialSpecularCol * specular;
 	// Add a fresnel rim-lighting effect
-	outAdditiveCol += materialFresnelCol * saturate( pow( (1-dot(v,n)), materialFresnelPower ) );
+	// outAdditiveCol += materialFresnelCol * saturate( pow( (1-dot(v,n)), materialFresnelPower ) );
 }
 //***************************************************************************
 void FFFragmentMainLit(	float3 inPos : TEXCOORD1,			// Model-space vector from eye to pixel

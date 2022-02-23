@@ -2113,8 +2113,6 @@
       <Rows href="WXFE.MainMenuList-13"/>
       <Rows href="WXFE.MainMenuList-17"/>
       <Rows href="WXFE.MainMenuList-21"/>
-      <Rows href="WXFE.MainMenuList-25"/>
-      <Rows href="WXFE.MainMenuList-29"/>
       <TotalRows>0</TotalRows>
       <VirtualOffset>0</VirtualOffset>
       <VirtualEnabled>False</VirtualEnabled>
@@ -2348,64 +2346,7 @@
       <Colour_Highlight r="255" g="255" b="255" a="255"/>
       <Colour_Disabled r="128" g="128" b="128" a="255"/>
     </WXFE_GapColumns>
-    <WXFE_ListBoxRows id="WXFE.MainMenuList-17" Xid="212">
-      <Border_Normal>0</Border_Normal>
-      <Border_Highlight>11</Border_Highlight>
-      <Border_Disabled>0</Border_Disabled>
-      <BorderFitContents>True</BorderFitContents>
-      <Anim_Highlight>26</Anim_Highlight>
-      <Anim_Clicked>1</Anim_Clicked>
-      <Messages_Selected>Xb360Live.ShowAchievementsUI</Messages_Selected>
-      <Orientation x="0" y="0" z="0"/>
-      <RowHeight>35</RowHeight>
-      <BorderHeightAdjust>0</BorderHeightAdjust>
-      <BorderWidthAdjust>0,15</BorderWidthAdjust>
-      <GapBetweenItems>2</GapBetweenItems>
-      <Decorative>False</Decorative>
-      <Sort></Sort>
-      <Index></Index>
-      <Enable></Enable>
-      <Columns href="WXFE.MainMenuList-18"/>
-      <Columns href="WXFE.MainMenuList-19"/>
-      <Columns href="WXFE.MainMenuList-20"/>
-    </WXFE_ListBoxRows>
-    <WXFE_GapColumns id="WXFE.MainMenuList-18" Xid="313">
-      <GapWidth>2</GapWidth>
-      <ExpandToFitAvailableSpace>True</ExpandToFitAvailableSpace>
-      <GapType>0</GapType>
-      <Colour_Normal r="255" g="255" b="255" a="255"/>
-      <Colour_Highlight r="255" g="255" b="255" a="255"/>
-      <Colour_Disabled r="128" g="128" b="128" a="255"/>
-    </WXFE_GapColumns>
-    <WXFE_StringTableColumns id="WXFE.MainMenuList-19" Xid="248">
-      <CallBack>False</CallBack>
-      <Text>FETXT.Achievements</Text>
-      <Font>FE.Font</Font>
-      <FontSize>35</FontSize>
-      <Width>100</Width>
-      <WidthIsInPercent>True</WidthIsInPercent>
-      <ScaleTextToFit>True</ScaleTextToFit>
-      <KeepWhiteSpace>False</KeepWhiteSpace>
-      <Justification>3</Justification>
-      <ColourFRONT_Normal>8</ColourFRONT_Normal>
-      <ColourFRONT_Highlight>2</ColourFRONT_Highlight>
-      <ColourFRONT_Disabled>19</ColourFRONT_Disabled>
-      <ColourBACK_Normal>2</ColourBACK_Normal>
-      <ColourBACK_Highlight>2</ColourBACK_Highlight>
-      <ColourBACK_Disabled>2</ColourBACK_Disabled>
-      <TextAnim>0</TextAnim>
-      <TextAnimSeed>0</TextAnimSeed>
-      <KeepJustification>False</KeepJustification>
-    </WXFE_StringTableColumns>
-    <WXFE_GapColumns id="WXFE.MainMenuList-20" Xid="312">
-      <GapWidth>2</GapWidth>
-      <ExpandToFitAvailableSpace>True</ExpandToFitAvailableSpace>
-      <GapType>0</GapType>
-      <Colour_Normal r="255" g="255" b="255" a="255"/>
-      <Colour_Highlight r="255" g="255" b="255" a="255"/>
-      <Colour_Disabled r="128" g="128" b="128" a="255"/>
-    </WXFE_GapColumns>
-    <WXFE_ListBoxRows id="WXFE.MainMenuList-21" Xid="213">
+    <WXFE_ListBoxRows id="WXFE.MainMenuList-17" Xid="213">
       <Border_Normal>0</Border_Normal>
       <Border_Highlight>11</Border_Highlight>
       <Border_Disabled>0</Border_Disabled>
@@ -2422,11 +2363,11 @@
       <Sort></Sort>
       <Index></Index>
       <Enable></Enable>
-      <Columns href="WXFE.MainMenuList-22"/>
-      <Columns href="WXFE.MainMenuList-23"/>
-      <Columns href="WXFE.MainMenuList-24"/>
+      <Columns href="WXFE.MainMenuList-18"/>
+      <Columns href="WXFE.MainMenuList-19"/>
+      <Columns href="WXFE.MainMenuList-20"/>
     </WXFE_ListBoxRows>
-    <WXFE_GapColumns id="WXFE.MainMenuList-22" Xid="311">
+    <WXFE_GapColumns id="WXFE.MainMenuList-18" Xid="311">
       <GapWidth>2</GapWidth>
       <ExpandToFitAvailableSpace>True</ExpandToFitAvailableSpace>
       <GapType>0</GapType>
@@ -2434,7 +2375,7 @@
       <Colour_Highlight r="255" g="255" b="255" a="255"/>
       <Colour_Disabled r="128" g="128" b="128" a="255"/>
     </WXFE_GapColumns>
-    <WXFE_StringTableColumns id="WXFE.MainMenuList-23" Xid="249">
+    <WXFE_StringTableColumns id="WXFE.MainMenuList-19" Xid="249">
       <CallBack>False</CallBack>
       <Text>FETXT.Help&amp;Options</Text>
       <Font>FE.Font</Font>
@@ -2454,7 +2395,7 @@
       <TextAnimSeed>0</TextAnimSeed>
       <KeepJustification>False</KeepJustification>
     </WXFE_StringTableColumns>
-    <WXFE_GapColumns id="WXFE.MainMenuList-24" Xid="310">
+    <WXFE_GapColumns id="WXFE.MainMenuList-20" Xid="310">
       <GapWidth>2</GapWidth>
       <ExpandToFitAvailableSpace>True</ExpandToFitAvailableSpace>
       <GapType>0</GapType>
@@ -2462,64 +2403,7 @@
       <Colour_Highlight r="255" g="255" b="255" a="255"/>
       <Colour_Disabled r="128" g="128" b="128" a="255"/>
     </WXFE_GapColumns>
-    <WXFE_ListBoxRows id="WXFE.MainMenuList-25" Xid="214">
-      <Border_Normal>0</Border_Normal>
-      <Border_Highlight>11</Border_Highlight>
-      <Border_Disabled>0</Border_Disabled>
-      <BorderFitContents>True</BorderFitContents>
-      <Anim_Highlight>26</Anim_Highlight>
-      <Anim_Clicked>1</Anim_Clicked>
-      <Messages_Selected>PM.ViewMarketplace</Messages_Selected>
-      <Orientation x="0" y="0" z="-0,06"/>
-      <RowHeight>35</RowHeight>
-      <BorderHeightAdjust>0</BorderHeightAdjust>
-      <BorderWidthAdjust>0,15</BorderWidthAdjust>
-      <GapBetweenItems>2</GapBetweenItems>
-      <Decorative>False</Decorative>
-      <Sort></Sort>
-      <Index></Index>
-      <Enable>Steam.Online</Enable>
-      <Columns href="WXFE.MainMenuList-26"/>
-      <Columns href="WXFE.MainMenuList-27"/>
-      <Columns href="WXFE.MainMenuList-28"/>
-    </WXFE_ListBoxRows>
-    <WXFE_GapColumns id="WXFE.MainMenuList-26" Xid="309">
-      <GapWidth>2</GapWidth>
-      <ExpandToFitAvailableSpace>True</ExpandToFitAvailableSpace>
-      <GapType>0</GapType>
-      <Colour_Normal r="255" g="255" b="255" a="255"/>
-      <Colour_Highlight r="255" g="255" b="255" a="255"/>
-      <Colour_Disabled r="128" g="128" b="128" a="255"/>
-    </WXFE_GapColumns>
-    <WXFE_StringTableColumns id="WXFE.MainMenuList-27" Xid="250">
-      <CallBack>False</CallBack>
-      <Text>FETXT.DownloadContent</Text>
-      <Font>FE.Font</Font>
-      <FontSize>35</FontSize>
-      <Width>100</Width>
-      <WidthIsInPercent>True</WidthIsInPercent>
-      <ScaleTextToFit>True</ScaleTextToFit>
-      <KeepWhiteSpace>False</KeepWhiteSpace>
-      <Justification>3</Justification>
-      <ColourFRONT_Normal>8</ColourFRONT_Normal>
-      <ColourFRONT_Highlight>2</ColourFRONT_Highlight>
-      <ColourFRONT_Disabled>19</ColourFRONT_Disabled>
-      <ColourBACK_Normal>2</ColourBACK_Normal>
-      <ColourBACK_Highlight>2</ColourBACK_Highlight>
-      <ColourBACK_Disabled>2</ColourBACK_Disabled>
-      <TextAnim>0</TextAnim>
-      <TextAnimSeed>0</TextAnimSeed>
-      <KeepJustification>False</KeepJustification>
-    </WXFE_StringTableColumns>
-    <WXFE_GapColumns id="WXFE.MainMenuList-28" Xid="308">
-      <GapWidth>2</GapWidth>
-      <ExpandToFitAvailableSpace>True</ExpandToFitAvailableSpace>
-      <GapType>0</GapType>
-      <Colour_Normal r="255" g="255" b="255" a="255"/>
-      <Colour_Highlight r="255" g="255" b="255" a="255"/>
-      <Colour_Disabled r="128" g="128" b="128" a="255"/>
-    </WXFE_GapColumns>
-    <WXFE_ListBoxRows id="WXFE.MainMenuList-29" Xid="215">
+    <WXFE_ListBoxRows id="WXFE.MainMenuList-21" Xid="215">
       <Border_Normal>0</Border_Normal>
       <Border_Highlight>11</Border_Highlight>
       <Border_Disabled>0</Border_Disabled>
@@ -2536,11 +2420,11 @@
       <Sort></Sort>
       <Index></Index>
       <Enable></Enable>
-      <Columns href="WXFE.MainMenuList-30"/>
-      <Columns href="WXFE.MainMenuList-31"/>
-      <Columns href="WXFE.MainMenuList-32"/>
+      <Columns href="WXFE.MainMenuList-22"/>
+      <Columns href="WXFE.MainMenuList-23"/>
+      <Columns href="WXFE.MainMenuList-24"/>
     </WXFE_ListBoxRows>
-    <WXFE_GapColumns id="WXFE.MainMenuList-30" Xid="307">
+    <WXFE_GapColumns id="WXFE.MainMenuList-22" Xid="307">
       <GapWidth>2</GapWidth>
       <ExpandToFitAvailableSpace>True</ExpandToFitAvailableSpace>
       <GapType>0</GapType>
@@ -2548,7 +2432,7 @@
       <Colour_Highlight r="255" g="255" b="255" a="255"/>
       <Colour_Disabled r="128" g="128" b="128" a="255"/>
     </WXFE_GapColumns>
-    <WXFE_StringTableColumns id="WXFE.MainMenuList-31" Xid="251">
+    <WXFE_StringTableColumns id="WXFE.MainMenuList-23" Xid="251">
       <CallBack>False</CallBack>
       <Text>Lang.Quit</Text>
       <Font>FE.Font</Font>
@@ -2568,7 +2452,7 @@
       <TextAnimSeed>0</TextAnimSeed>
       <KeepJustification>False</KeepJustification>
     </WXFE_StringTableColumns>
-    <WXFE_GapColumns id="WXFE.MainMenuList-32" Xid="306">
+    <WXFE_GapColumns id="WXFE.MainMenuList-24" Xid="306">
       <GapWidth>2</GapWidth>
       <ExpandToFitAvailableSpace>True</ExpandToFitAvailableSpace>
       <GapType>0</GapType>

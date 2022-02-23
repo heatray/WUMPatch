@@ -1,12 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xomArchive>
   <xomTypes>
-    <XContainer/>
+    <XStringResourceDetails/>
     <XDataBank/>
   </xomTypes>
   <xomObjects>
-    <XDataBank id="id-0" Xid="1">
+    <XDataBank id="id-0" Xid="4">
       <Section>0</Section>
+      <StringResources href='FETXT.American'/>
+      <StringResources href='FETXT.Korean'/>
+      <StringResources href='FETXT.Chinese'/>
     </XDataBank>
+    <XStringResourceDetails id='FETXT.American' Xid="1">
+      <Value>American English</Value>
+      <Name>FETXT.American</Name>
+      <Flags>96</Flags>
+    </XStringResourceDetails>
+    <XStringResourceDetails id='FETXT.Korean' Xid="2">
+      <Value>Korean</Value>
+      <Name>FETXT.Korean</Name>
+      <Flags>96</Flags>
+    </XStringResourceDetails>
+    <XStringResourceDetails id='FETXT.Chinese' Xid="3">
+      <Value>Chinese</Value>
+      <Name>FETXT.Chinese</Name>
+      <Flags>96</Flags>
+    </XStringResourceDetails>
   </xomObjects>
 </xomArchive>

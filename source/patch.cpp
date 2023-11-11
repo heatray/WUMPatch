@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-bool LandmineLodFix, UnlockAllLanguages, UnlockLoyaltyItems;
+bool DisableLetterbox, LandmineLodFix, UnlockAllLanguages, UnlockLoyaltyItems;
 uint8_t FrameInterval;
 
 bool Borderless;
@@ -10,6 +10,7 @@ void Init()
     CIniReader iniReader("");
 
     FrameInterval = iniReader.ReadInteger("Main", "FrameInterval", 16);
+    DisableLetterbox = iniReader.ReadInteger("Main", "DisableLetterbox", 0) == 1;
     LandmineLodFix = iniReader.ReadInteger("Main", "LandmineLodFix", 0) == 1;
     UnlockAllLanguages = iniReader.ReadInteger("Main", "UnlockAllLanguages", 0) == 1;
     UnlockLoyaltyItems = iniReader.ReadInteger("Main", "UnlockLoyaltyItems", 0) == 1;
@@ -19,6 +20,11 @@ void Init()
     if (FrameInterval != 16) {
         injector::WriteMemory<BYTE>(0x4D919B, FrameInterval, true);
         injector::WriteMemory<BYTE>(0x4D919F, FrameInterval, true);
+    }
+
+    if (DisableLetterbox)
+    {
+        injector::MakeJMP(0x6F6E37, 0x6F6ED0, true);
     }
 
     if (LandmineLodFix)

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-bool UnlockAllLanguages, UnlockLoyaltyItems;
+bool LandmineLodFix, UnlockAllLanguages, UnlockLoyaltyItems;
 uint8_t FrameInterval;
 
 void Init()
@@ -8,12 +8,18 @@ void Init()
     CIniReader iniReader("");
 
     FrameInterval = iniReader.ReadInteger("Main", "FrameInterval", 16);
+    LandmineLodFix = iniReader.ReadInteger("Main", "LandmineLodFix", 0) == 1;
     UnlockAllLanguages = iniReader.ReadInteger("Main", "UnlockAllLanguages", 0) == 1;
     UnlockLoyaltyItems = iniReader.ReadInteger("Main", "UnlockLoyaltyItems", 0) == 1;
 
     if (FrameInterval != 16) {
         injector::WriteMemory<BYTE>(0x4D919B, FrameInterval, true);
         injector::WriteMemory<BYTE>(0x4D919F, FrameInterval, true);
+    }
+
+    if (LandmineLodFix)
+    {
+        injector::WriteMemory<BYTE>(0x57CC46, 0xEB, true);
     }
 
     if (UnlockAllLanguages) {

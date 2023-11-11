@@ -3,6 +3,8 @@
 bool LandmineLodFix, UnlockAllLanguages, UnlockLoyaltyItems;
 uint8_t FrameInterval;
 
+bool Borderless;
+
 void Init()
 {
     CIniReader iniReader("");
@@ -11,7 +13,9 @@ void Init()
     LandmineLodFix = iniReader.ReadInteger("Main", "LandmineLodFix", 0) == 1;
     UnlockAllLanguages = iniReader.ReadInteger("Main", "UnlockAllLanguages", 0) == 1;
     UnlockLoyaltyItems = iniReader.ReadInteger("Main", "UnlockLoyaltyItems", 0) == 1;
+    Borderless = iniReader.ReadInteger("Window", "Borderless", 0) == 1;
 
+    // Main
     if (FrameInterval != 16) {
         injector::WriteMemory<BYTE>(0x4D919B, FrameInterval, true);
         injector::WriteMemory<BYTE>(0x4D919F, FrameInterval, true);
@@ -33,6 +37,13 @@ void Init()
         injector::WriteMemory<DWORD>(0x622DB4, 0, true);
         injector::WriteMemory<DWORD>(0x622DCB, 0, true);
         injector::WriteMemory<DWORD>(0x622DE2, 0, true);
+    }
+
+    // Window
+    if (Borderless)
+    {
+        injector::WriteMemory<BYTE>(0x795CAC, 0x8, true); // dwStyle
+        injector::WriteMemory<BYTE>(0x795CBC, 0x8, true); // dwStyle
     }
 }
 

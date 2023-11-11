@@ -1,19 +1,15 @@
 #include "stdafx.h"
 
-bool DisableCRC, UnlockAllLanguages, UnlockLoyaltyItems;
+bool UnlockAllLanguages, UnlockLoyaltyItems;
 uint8_t FrameInterval;
 
 void Init()
 {
     CIniReader iniReader("");
-    DisableCRC = iniReader.ReadInteger("Main", "DisableCRC", 0) == 1;
+
     FrameInterval = iniReader.ReadInteger("Main", "FrameInterval", 16);
     UnlockAllLanguages = iniReader.ReadInteger("Main", "UnlockAllLanguages", 0) == 1;
     UnlockLoyaltyItems = iniReader.ReadInteger("Main", "UnlockLoyaltyItems", 0) == 1;
-
-    if (DisableCRC) {
-        injector::WriteMemory<WORD>(0x635618, 0x00EB, true); // jmp 0x63561A
-    }
 
     if (FrameInterval != 16) {
         injector::WriteMemory<BYTE>(0x4D919B, FrameInterval, true);

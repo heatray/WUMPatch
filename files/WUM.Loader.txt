@@ -1,0 +1,22 @@
+============================== WUM.Loader ==============================
+
+Place modified xom or tga files here from the following paths:
+- Data
+- CG
+- Data/Themes
+- Data/Effects
+- Data/Effects/ParticleData
+- Data/Frontend/Levels
+- Data/Frontend/Gallery
+- Data/Frontend/Mechanics
+- Data/Tweak
+- Data/databanks
+- Data/Audio
+- Data/Language/PC
+- Data/scripts
+- Data/Intro_EFMV
+- Data/../bundles
+- Data/Bundles
+- Data/HUD/Flags
+- Data/HUD/Weapons
+and they will be loaded by the game instead of original ones.

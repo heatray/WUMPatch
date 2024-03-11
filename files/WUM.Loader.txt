@@ -1,6 +1,8 @@
-============================== WUM.Loader ==============================
+================================== WUM.Loader ==================================
 
-Place modified xom or tga files here from the following paths:
+Place modified XOM or TGA files here from the following paths and they will be
+loaded by the game instead of original ones:
+
 - Data
 - CG
 - Data/Themes
@@ -19,4 +21,3 @@ Place modified xom or tga files here from the following paths:
 - Data/Bundles
 - Data/HUD/Flags
 - Data/HUD/Weapons
-and they will be loaded by the game instead of original ones.

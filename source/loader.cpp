@@ -11,31 +11,31 @@ void __declspec(naked) InitOptionalPathsCodeCave()
 {
     __asm {
         push    DataPath
-        lea     ecx, dword ptr ss : [esp + 0x8]
+        lea     ecx, dword ptr ss:[esp+0x8]
         call    XString__XString
-        mov     dword ptr ss : [esp + 0x10], 0x1
+        mov     dword ptr ss:[esp+0x10], 0x1
         call    XomGetApp
-        mov     ecx, dword ptr ds : [eax]
-        lea     edx, dword ptr ss : [esp + 0x4]
+        mov     ecx, dword ptr ds:[eax]
+        lea     edx, dword ptr ss:[esp+0x4]
         push    edx
         push    eax
-        mov     eax, dword ptr ds : [ecx + 0xC]
+        mov     eax, dword ptr ds:[ecx+0xC]
         call    eax
-        mov     dword ptr ss : [esp + 0x10], esi
-        lea     ecx, dword ptr ss : [esp + 0x4]
+        mov     dword ptr ss:[esp+0x10], esi
+        lea     ecx, dword ptr ss:[esp+0x4]
         call    XString__RemoveInstance
-        mov     ecx, dword ptr ss : [esp + 0x4]
+        mov     ecx, dword ptr ss:[esp+0x4]
         add     ecx, 0xFFFFFFFA
         mov     edx, 0xFFFF
-        add     word ptr ds : [ecx], dx
-        movzx   eax, word ptr ds : [ecx]
+        add     word ptr ds:[ecx], dx
+        movzx   eax, word ptr ds:[ecx]
         test    eax, eax
         jne     InitPathsEnd
         call    XString__FreeRep
     InitPathsEnd:
-        mov     ecx, dword ptr ss : [esp + 0x8]
+        mov     ecx, dword ptr ss:[esp+0x8]
         pop     ecx
-        mov     dword ptr fs : [0x0], ecx
+        mov     dword ptr fs:[0x0], ecx
         add     esp, 0x10
         ret
     }
@@ -47,7 +47,7 @@ void Init()
     injector::WriteMemory<WORD>(0x635618, 0x00EB, true); // jmp 0x63561A
 
     // Data Search Path
-    injector::MakeJMP(0x4D75DF, InitOptionalPathsCodeCave, true);
+    injector::MakeJMP(0x4D75DF, InitOptionalPathsCodeCave);
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved)

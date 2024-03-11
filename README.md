@@ -1,23 +1,36 @@
 # Worms Ultimate Mayhem Anniversary Patch
 
-[![GitHub latest tag)](https://img.shields.io/github/v/tag/heatray/WUMPatch?label=latest)](https://github.com/heatray/WUMPatch/releases/latest) [![GitHub all releases](https://img.shields.io/github/downloads/heatray/WUMPatch/total)](https://github.com/heatray/WUMPatch/releases)
+[![GitHub latest tag)](https://img.shields.io/github/v/tag/heatray/WUMPatch?label=latest)](https://github.com/heatray/WUMPatch/releases/latest) [![GitHub all releases](https://img.shields.io/github/downloads/heatray/WUMPatch/total)](https://github.com/heatray/WUMPatch/releases) [![Discord](https://img.shields.io/discord/455020679696482306?label=W4Tweaks&logo=discord&logoColor=white)](https://discord.gg/sdKqGu6)
 
-Unofficial patch for [Worms Ultimate Mayhem](https://store.steampowered.com/app/70600).
+Unofficial patch for Worms Ultimate Mayhem ([Steam](https://store.steampowered.com/app/70600)/[GOG](https://www.gog.com/game/worms_ultimate_mayhem_deluxe_edition)).
 
-Supported exe versions: **Steam Ver#1077**
+Supported EXE versions: **Steam/GOG #1077**.
 
 ## Features
 
-### Plugin
+### Modules
 
-* CRC checking disabled
-* Frame rate drops fixed
-* All languages enabled
-* Alien Breed and Worms Reloaded loyalty items unlocked
+#### WUM.Patch
+
+* **FrameInterval** - changes interval between frames to help with performance issues
+* **HudAspectRatioFix** - stretches HUD (for ultra-wide resolutions)
+* **DisableLetterbox** - removes letterboxing (for ultra-wide resolutions)
+* **XSceneCameraFix** - fixes aspect ratio of the bomber scene
+* **LandmineLodFix** - disables low-poly landmine model
+* **UnlockAllLanguages** - adds all languages in the selection menu (American, Chinese & Korean are not actural translations, but they can be replaced with your own translation)
+* **UnlockLoyaltyItems** - unlocks Alien Breed and Worms Reloaded loyalty items
+* **Borderless** - disables window frames (only in windowed mode)
+
+#### WUM.Loader
+
+* Disables CRC checks
+* Allows to load modified resources without replacing original files  
+  Place modified XOM or TGA files in the `Data2` directory
 
 ### Shaders
 
-* Removed fresnel rim-lighting effect
+* Removed surfaces gloss effect
+* Removed rim-lighting effect
 * Removed sepia effect
 
 ### Resources
@@ -31,41 +44,53 @@ Supported exe versions: **Steam Ver#1077**
 
 ## Installation
 
-Ensure you have the latest [x86 VC Redist](https://aka.ms/vs/17/release/vc_redist.x86.exe) installed.
+The latest build can be downloaded from the [Releases](https://github.com/heatray/WUMPatch/releases) page.
 
-Copy content of archive to the game folder.
+Unpack the files to the **Worms Ultimate Mayhem** game directory, overwriting at the prompts.
 
-Check the `plugins\patch.ini` file for available features.
+Check the `WUM.Patch.ini` file for available features.
+
+### Proton/Wine
+
+For Steam, head to game’s properties and set **LAUNCH OPTIONS** to `WINEDLLOVERRIDES="dinput8=n,b" %command%` or `export WINEDLLOVERRIDES="dinput8=n,b"; echo WormsMayhem | xargs -I Launcher %command%`.
 
 ## Screenshots
 
 <details>
+<summary><b>Patch</b></summary>
+
+**HUD aspect ratio fix, disabled letterbox**
+
+![](.github/images/ultrawide.jpg)
+
+**Bomber scene aspect ratio fix**
+
+![](.github/images/xscenecamera.jpg)
+
+**Landmine LOD fix**
+
+![](.github/images/landminelod.jpg)
+
+</details>
+
+<details>
 <summary><b>Shaders</b></summary>
 
-![shaders](https://user-images.githubusercontent.com/5289615/155403937-d1fee306-d9aa-4d49-8d5a-2ce31d4c6895.png)
+![](.github/images/shaders.jpg)
 
 </details>
 
 <details>
 <summary><b>Resources</b></summary>
 
-![wp](https://user-images.githubusercontent.com/5289615/155402089-772f503b-9329-4a11-8fe0-112883c59007.png)
-![parabolic](https://user-images.githubusercontent.com/5289615/155400743-d9d356c4-9a19-4bbd-a728-db6f0bcb505f.png)
-![homing](https://user-images.githubusercontent.com/5289615/155402753-7c87e445-8695-4e3e-b8ef-117dffd7fcfc.png)
-![fps](https://user-images.githubusercontent.com/5289615/155402840-40e6f61e-00a9-4f44-a385-1ca2bb8a02d0.png)
-![airstrike](https://user-images.githubusercontent.com/5289615/155402938-26872586-9939-4942-970c-47c2395ebbab.png)
-![rope](https://user-images.githubusercontent.com/5289615/155403071-d83ffa7e-383c-4433-8ee2-a8efbb1dbb72.png)
-![binoculars](https://user-images.githubusercontent.com/5289615/155402867-f5fdf5b9-5557-4141-a34f-51e900216de6.png)
-![meleehit](https://user-images.githubusercontent.com/5289615/155402990-b79d6412-0188-4941-90fc-fa772dd5fc77.png)
-![select](https://user-images.githubusercontent.com/5289615/155403116-f0890fcc-ea86-4921-b8c0-01894b26a3ed.png)
+![](.github/images/hud_wp.jpg "Weapon Panel")
+![](.github/images/hud_parabolic.jpg "Parabolic")
+![](.github/images/hud_homing.jpg "Homing")
+![](.github/images/hud_fps.jpg "FPS Cursor")
+![](.github/images/hud_airstrike.jpg "Air Strike")
+![](.github/images/hud_rope.jpg "Targeting")
+![](.github/images/hud_binoculars.jpg "Binoculars")
+![](.github/images/hud_meleehit.jpg "Melee Hit")
+![](.github/images/hud_select.jpg "Select Worm")
 
 </details>
-
-## To-do
-
-* Fix cameras
-* Fix bomber scene aspect ratio
-* Remove letterboxes for wider screens
-* Fix menu tooltip field
-* Fix HUD
-* Change map icons

@@ -1,12 +1,15 @@
 #include "stdafx.h"
 
 uint8_t FrameInterval;
-bool AspectRatioFix, DisableLetterbox, LandmineLodFix, UnlockAllLanguages, UnlockLoyaltyItems;
+
+bool HudAspectRatioFix, DisableLetterbox, XSceneCameraFix, LandmineLodFix, \
+    UnlockAllLanguages, UnlockLoyaltyItems;
 int Width = 800;
 int Height = 600;
 float AspectRatioX = 4.0f / 3.0f;
 float AspectRatioY = 3.0f / 4.0f;
 float ApertureValue = 12.7f;
+float WXFE_ZBuffer_Scale_XY = 2000.0f;
 
 bool Borderless;
 
@@ -77,8 +80,9 @@ void Init()
     CIniReader iniReader("");
 
     FrameInterval = iniReader.ReadInteger("Main", "FrameInterval", 16);
-    AspectRatioFix = iniReader.ReadInteger("Main", "AspectRatioFix", 0) == 1;
+    HudAspectRatioFix = iniReader.ReadInteger("Main", "HudAspectRatioFix", 0) == 1;
     DisableLetterbox = iniReader.ReadInteger("Main", "DisableLetterbox", 0) == 1;
+    XSceneCameraFix = iniReader.ReadInteger("Main", "XSceneCameraFix", 0) == 1;
     LandmineLodFix = iniReader.ReadInteger("Main", "LandmineLodFix", 0) == 1;
     UnlockAllLanguages = iniReader.ReadInteger("Main", "UnlockAllLanguages", 0) == 1;
     UnlockLoyaltyItems = iniReader.ReadInteger("Main", "UnlockLoyaltyItems", 0) == 1;
@@ -91,17 +95,27 @@ void Init()
         injector::WriteMemory<BYTE>(0x4D919F, FrameInterval, true);
     }
 
-    if (AspectRatioFix)
+    if (HudAspectRatioFix)
     {
-        injector::MakeJMP(0x510FA7, AspectRatioCodeCave);
-
-        // XCamera::SetFromSceneCamera
-        injector::MakeJMP(0x6E1F59, SetFromSceneCameraCodeCave);
+        injector::WriteMemory<BYTE>(0x4D4D22, 0xEB, true); // jmp
     }
 
     if (DisableLetterbox)
     {
-        injector::MakeJMP(0x6F6E37, 0x6F6ED0, true);
+        // XOpenGLRenderManager
+        injector::MakeJMP(0x6F6E37, 0x6F6ED0);
+
+        // FrontEndService
+        injector::WriteMemory<FLOAT*>(0x7298B1, &WXFE_ZBuffer_Scale_XY, true);
+    }
+
+    if (XSceneCameraFix)
+    {
+        // WormsXApp::ParseInitCommands
+        injector::MakeJMP(0x510FA7, AspectRatioCodeCave);
+
+        // XCamera::SetFromSceneCamera
+        injector::MakeJMP(0x6E1F59, SetFromSceneCameraCodeCave);
     }
 
     if (LandmineLodFix)
@@ -111,7 +125,7 @@ void Init()
 
     if (UnlockAllLanguages) {
         injector::WriteMemory<BYTE>(0x6239D5, 0xC, true); // cmp edi, 0xC
-        injector::MakeNOP(0x6239DC, 27, true);
+        injector::MakeNOP(0x6239DC, 27);
         injector::WriteMemory<WORD>(0x6239F7, 0x01B3, true); // mov bl, 0x1
     }
 
@@ -123,6 +137,7 @@ void Init()
     }
 
     // Window
+
     if (Borderless)
     {
         injector::WriteMemory<BYTE>(0x795CAC, 0x8, true); // dwStyle

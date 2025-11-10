@@ -130,10 +130,10 @@ void Init()
     }
 
     if (UnlockLoyaltyItems) {
-        injector::WriteMemory<DWORD>(0x622D9B, 0, true);
-        injector::WriteMemory<DWORD>(0x622DB4, 0, true);
-        injector::WriteMemory<DWORD>(0x622DCB, 0, true);
-        injector::WriteMemory<DWORD>(0x622DE2, 0, true);
+        injector::MakeNOP(0x622D8A, 27);
+        injector::MakeNOP(0x622DAA, 20);
+        injector::MakeNOP(0x622DC1, 20);
+        injector::MakeNOP(0x622DD8, 21);
     }
 
     // Window
